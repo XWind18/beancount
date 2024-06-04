@@ -9,7 +9,7 @@ import enum
 import sys
 
 from decimal import Decimal
-from typing import Any, Dict, List, NamedTuple, Optional, Set, Union
+from typing import Any, Dict, FrozenSet, List, NamedTuple, Optional, Set, Union
 
 from beancount.core.amount import Amount
 from beancount.core.number import D
@@ -190,7 +190,8 @@ class Posting(NamedTuple):
 
     Attributes:
       account: A string, the account that is modified by this posting.
-      units: An Amount, the units of the position.
+      units: An Amount, the units of the position, or None if it is to be
+        inferred from the other postings in the transaction.
       cost: A Cost or CostSpec instances, the units of the position.
       price: An Amount, the price at which the position took place, or
         None, where not relevant. Providing a price member to a posting
@@ -205,7 +206,7 @@ class Posting(NamedTuple):
         of the instances will be unlikely to have metadata.
     """
     account: Account
-    units: Amount
+    units: Optional[Amount]
     cost: Optional[Union[Cost, CostSpec]]
     price: Optional[Amount]
     flag: Optional[Flag]
@@ -239,8 +240,8 @@ class Transaction(NamedTuple):
     flag: Flag
     payee: Optional[str]
     narration: str
-    tags: Set
-    links: Set
+    tags: FrozenSet
+    links: FrozenSet
     postings: List[Posting]
 
 
