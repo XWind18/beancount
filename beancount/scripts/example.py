@@ -17,6 +17,7 @@ import sys
 import textwrap
 
 from dateutil import rrule
+import dateutil.parser
 
 import click
 
@@ -38,7 +39,6 @@ from beancount.core import prices
 from beancount.scripts import format
 from beancount.core import getters
 from beancount.utils import misc_utils
-from beancount.utils import date_utils
 from beancount.parser.version import VERSION
 from beancount import loader
 
@@ -371,8 +371,7 @@ def get_minimum_balance(entries, account, currency):
     for _, balances in postings_for(entries, [account]):
         balance = balances[account]
         current = balance.get_currency_units(currency).number
-        if current < min_amount:
-            min_amount = current
+        min_amount = min(current, min_amount)
     return min_amount
 
 
@@ -1818,12 +1817,18 @@ def write_example_file(date_birth, date_begin, date_end, reformat, file):
     )
 
 
+def parse_date_liberally(string, parse_kwargs_dict=None):
+    if parse_kwargs_dict is None:
+        parse_kwargs_dict = {}
+    return dateutil.parser.parse(string, **parse_kwargs_dict).date()
+
+
 class LiberalDate(click.ParamType):
     name = "date"
 
     def convert(self, value, param, ctx):
         try:
-            date_utils.parse_date_liberally(value)
+            parse_date_liberally(value)
         except ValueError:
             self.fail("{!r} is not a valid date".format(value), param, ctx)
 
